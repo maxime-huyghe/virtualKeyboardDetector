@@ -2,10 +2,12 @@
  *  The Virtual Keyboard Detector
  */
 
-var virtualKeyboardDetector = ( function( window, undefined ) {
+var virtualKeyboardDetector = function( window, undefined ) {
 
   var recentlyFocusedTimeoutDuration = 3000;
-  
+
+  var previousViewportWidth, viewportWidthWithoutVirtualKeyboard;
+  var previousViewportHeight, viewportHeightWithoutVirtualKeyboard;
   var currentViewportWidth = previousViewportWidth = viewportWidthWithoutVirtualKeyboard = window.innerWidth;
   var currentViewportHeight = previousViewportHeight = viewportHeightWithoutVirtualKeyboard = window.innerHeight;
 
@@ -67,7 +69,7 @@ var virtualKeyboardDetector = ( function( window, undefined ) {
 
   // Publish
   function trigger ( eventName, args ) {
-    for ( i in subscriptions[eventName] ) {
+    for ( var i in subscriptions[eventName] ) {
       if ( typeof subscriptions[eventName][i] === 'function' ) subscriptions[eventName][i]( args );
     }   
   }
@@ -135,7 +137,7 @@ var virtualKeyboardDetector = ( function( window, undefined ) {
     // If recently focused and viewport height is smaller then previous height, we presume that the virtual keyboard has appeared.
     if ( !virtualKeyboardVisible && recentlyFocused && currentViewportWidth == previousViewportWidth && currentViewportHeight < previousViewportHeight ) {
       virtualKeyboardVisibleHandler();
-    }   
+    }
 
     // If the keyboard is presumed not visible, we save the current measurements as values before keyboard was shown.
     if ( virtualKeyboardVisible == false ) {
@@ -202,4 +204,24 @@ var virtualKeyboardDetector = ( function( window, undefined ) {
     dispatchEvent: trigger
   };
 
-} )( window );
+}
+
+var noop = () => { };
+
+// Export an object with noops when not on web.
+export default typeof document !== "undefined"
+  ? virtualKeyboardDetector(window)
+  : {
+    init: noop,
+    isVirtualKeyboardVisible: noop,
+    getVirtualKeyboardSize: noop,
+    on: noop,
+    addEventListener: noop,
+    subscribe: noop,
+    off: noop,
+    removeEventListener: noop,
+    unsubscribe: noop,
+    trigger: noop,
+    publish: noop,
+    dispatchEvent: noop,
+  }
